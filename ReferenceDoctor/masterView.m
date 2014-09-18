@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 chens. All rights reserved.
 //
 
+#import <QuartzCore/QuartzCore.h>
+
 #import "masterView.h"
 
 #define TEXT_BOX_HEIGHT             30
@@ -29,6 +31,7 @@
         [self addSubview:[self getHeader:@"Welcome to Reference Doc"]];
         [self addSubview:[self getFullFileName:@"abc"]];
         [self addSubview:[self getOpenButton:@"檔案"]];
+        [self addSubview:[self getgoButton:@"GO Check"]];
     }
     
     return self;
@@ -84,10 +87,30 @@
     [self.openButton setTarget:self];
     return self.openButton;
 }
-     
+
+- (NSButton *) getgoButton:(NSString *)text
+{
+    NSImage *image = [NSImage imageNamed:@"thumbsUp.png"];
+    NSImage *resizedImage = [self resizeImage:image size:CGSizeMake(150, 50)];
+    
+    CGFloat buttonWidth = 150;
+    CGFloat buttonHeight = 80;
+    
+    CGFloat x = self.frame.size.width * .5 - buttonWidth * .5 ;
+    CGFloat y = self.fullFileName.frame.origin.y - buttonHeight - 20;
+    
+    self.goButton = [[NSButton alloc] initWithFrame:CGRectMake(x, y, buttonWidth, buttonHeight)];
+    [self.goButton setImagePosition:NSImageBelow];
+    [self.goButton setImage:resizedImage];
+    [self.goButton.cell setFont:[NSFont systemFontOfSize:20.0f]];
+    [self.goButton setTitle:text];
+    [self.goButton.cell setBackgroundColor:[NSColor whiteColor]];
+    [self.goButton setEnabled:NO];
+    return self.goButton;
+}
+
 - (NSImage*) resizeImage:(NSImage*)sourceImage size:(NSSize)size
 {
-    
     NSRect targetFrame = NSMakeRect(0, 0, size.width, size.height);
     NSImage* targetImage = nil;
     NSImageRep *sourceImageRep =
@@ -104,6 +127,16 @@
     return targetImage;
 }
 
+- (void) resetFullFileName:(NSString *)filename
+{
+    self.fullFileName.stringValue = filename;
+
+    NSString *trimmedFileName = [filename stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if ( [trimmedFileName length] > 1 ) {
+        [self.goButton setEnabled:YES];
+    }
+}
+
 - (void) openButtonPressed
 {
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -112,8 +145,7 @@
     [openPanel setCanChooseFiles:YES];
     [openPanel setAllowedFileTypes:@[@"xml"]];
     [openPanel beginWithCompletionHandler:^(NSInteger result) {
-        NSLog(@"%@", openPanel.URL);
-        self.fullFileName.stringValue = [NSString stringWithFormat:@"%@", [openPanel.URLs firstObject]];
+        [self resetFullFileName:[NSString stringWithFormat:@"%@", [openPanel.URLs firstObject]]];
     }];
 }
 
